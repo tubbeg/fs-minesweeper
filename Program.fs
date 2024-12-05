@@ -4,6 +4,7 @@ open Fable.Core
 open Browser
 open Browser.Dom
 open Feliz
+open Board
 
 type MyStuff =
     | SomeStuff of int
@@ -61,9 +62,13 @@ let updateSystem (a : Action)  (x : int) (y : int)  =
     console.log(x,y, a)
     ()
 
+let defaultSize = 10,10
+let defaultPosition = 0,0
+
 [<ReactComponent>]
 let App () =
-    let (count, setCount) = React.useState(0)
+    let defaultWorld = createWorld defaultPosition defaultSize 
+    let (world, setWorld) = React.useState({|state=defaultWorld|})
     let table = RTable updateSystem
     Html.div [
         prop.className "box centerDiv"
