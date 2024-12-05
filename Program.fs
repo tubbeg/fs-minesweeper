@@ -5,6 +5,8 @@ open Browser
 open Browser.Dom
 open Feliz
 open Board
+open MiniplexInterop
+open Types
 
 type MyStuff =
     | SomeStuff of int
@@ -14,11 +16,7 @@ let x : MyStuff = SomeStuff 5
 
 console.log x
 
-type Action =
-    | Inspect
-    | Flag
-
-type UpdateSystem = Action -> int -> int -> unit
+type UpdateSystem = MSAction -> int -> int -> unit
 
 [<ReactComponent>]
 let CreateButton (x:int,y :int) (t : string) (cb : UpdateSystem) =
@@ -50,31 +48,33 @@ let createRows (rows : int) (columns : int) (cb : UpdateSystem) =
     cr rows []
 
 [<ReactComponent>]
-let RTable (cb : UpdateSystem) =
-    let r = createRows 5  5 cb
+let RTable (cb : UpdateSystem) (a,b) =
+    let r = createRows a  b cb
     Html.div [
         Html.table [
             Html.tbody r
         ]
     ]
 
-let updateSystem (a : Action)  (x : int) (y : int)  =
+let updateSystem (a : MSAction)  (x : int) (y : int) (w : World) =
     console.log(x,y, a)
-    ()
+    updateWorld a x y w 
 
 let defaultSize = 10,10
 let defaultPosition = 0,0
+let defaultDifficulty = 60
 
 [<ReactComponent>]
 let App () =
-    let defaultWorld = createWorld defaultPosition defaultSize 
+    let defaultWorld = createWorld defaultDifficulty defaultPosition defaultSize 
     let (world, setWorld) = React.useState({|state=defaultWorld|})
-    let table = RTable updateSystem
+    let updateState w =
+        setWorld {|state=w|}
+    let table = RTable (fun a x y -> ((updateSystem a x y world.state) |> updateState))
     Html.div [
         prop.className "box centerDiv"
-        prop.children [table]
+        prop.children [table defaultSize]
     ]
-
 
 let root = ReactDOM.createRoot(document.getElementById "divRoot")
 root.render(App())
