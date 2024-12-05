@@ -1,0 +1,9 @@
+*.fs.js
+*.png
+*.jpg
+node_modules/
+dist/
+bin/
+.config/
+obj/
+package-lock.json

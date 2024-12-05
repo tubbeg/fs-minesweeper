@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>fs_minesweeper</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="MiniplexInterop.fs" />
+    <Compile Include="Board.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fable.Browser.Dom" Version="2.18.0" />
+    <PackageReference Include="Fable.Core" Version="4.3.0" />
+    <PackageReference Include="feliz" Version="2.9.0" />
+  </ItemGroup>
+
+</Project>

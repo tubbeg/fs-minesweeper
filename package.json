@@ -1,0 +1,23 @@
+{
+  "name": "fs-minesweeper",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "dotnet fable ",
+    "watch": "dotnet fable watch --run npx vite"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "description": "",
+  "devDependencies": {
+    "vite": "^6.0.2"
+  },
+  "dependencies": {
+    "miniplex": "^2.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}
