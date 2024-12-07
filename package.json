@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "dotnet fable ",
-    "watch": "dotnet fable watch --run npx vite"
+    "watch": "dotnet fable watch --run npx vite",
+    "run-game" : "npx vite dist/"
   },
   "keywords": [],
   "author": "",
