@@ -13,6 +13,6 @@ Install the latest version of git,nodejs, and npm.
 ### In a shell
 
 1. git clone git@github.com:tubbeg/fs-minesweeper.git
-2. cd ts-minesweeper
+2. cd fs-minesweeper
 3. npm install
 4. npm run run-game
