@@ -96,6 +96,17 @@ let defaultSize = 10,10
 let defaultPosition = 0,0
 let defaultDifficulty = 10
 
+
+[<ReactComponent>]
+let RResult r = 
+    let endGame result =
+        match result with
+        | Won -> Html.div [ prop.className "box has-text-primary"; prop.text "YOU WON"]
+        | Lost -> Html.div [ prop.className "box has-text-danger"; prop.text "YOU LOST"]
+    match r with
+    | None -> Html.div []
+    | Some r -> endGame r
+
 [<ReactComponent>]
 let App () =
     let s = defaultSize
@@ -103,6 +114,7 @@ let App () =
     let defaultStart = false
     let defaultWorld = None
     let (world, setWorld) = React.useState({|state=defaultWorld|})
+    let (result, setResult) = React.useState({|result=None|})
     let updateState w =
         setWorld {|state=w|}
     let runWorld a x y =
@@ -112,12 +124,26 @@ let App () =
             | Inspect -> createWorld d (x,y) s |> updateSystem a x y |> Some |> updateState
             | _ -> ()
         | Some w -> updateSystem a x y w |> Some |> updateState
-    let table = RTable runWorld
-    let resetWorld e = setWorld {|state=None|}
+    let updateWorldVerifyGameState a x y =
+        match result.result with
+        | None -> 
+            runWorld a x y
+            let gameState = getGameState world.state
+            setResult {|result=gameState|}
+            match gameState with
+            | Some Won -> console.log("YOU WON")
+            | Some Lost -> console.log("YOU lost")
+            | _ -> ()
+        | _ -> ()
+    let table = RTable updateWorldVerifyGameState
+    let resetWorld e =
+        setWorld {|state=None|}
+        setResult {|result=None|}
     Html.div [
         prop.className "box centerDiv"
         prop.children [
             Title()
+            RResult result.result
             ResetButton resetWorld
             table s world.state
         ]

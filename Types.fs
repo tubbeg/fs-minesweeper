@@ -7,7 +7,7 @@ type CellContent =
     | Mine
     | Empty
     | Proxy of int
-type Visbility =
+type Visibility =
     | Visible
     | Hidden
 type Flag =
@@ -17,7 +17,7 @@ type Cell =
     {
         position:Position
         content:CellContent
-        visibility:Visbility
+        visibility:Visibility
         flag:Flag    
     }
 type Size =
@@ -36,3 +36,8 @@ type BoardAR = {|board: Board|}
 type MSAction =
     | Inspect
     | Flag
+
+
+type GameState =
+    | Won
+    | Lost

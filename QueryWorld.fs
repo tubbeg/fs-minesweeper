@@ -154,3 +154,53 @@ let isHiddenEmptyOrProxy (x,y) w =
     | None, _, Some _ -> true
     | _ -> false
 
+
+let allMinesAreFlagged w =
+    match queryCells w with
+    | None -> false
+    | Some cells ->
+        let mines = cells |> Array.filter(fun c -> (c.content = Mine))
+        let flags = mines |> Array.filter(fun c -> (c.flag = Flagged))
+        let lenMines = mines |> Array.length
+        let lenFlags = flags |> Array.length
+        console.log("Flagged mines", lenFlags)
+        console.log("Mines", lenMines)
+        let MinesNotFlagged = mines |> Array.filter(fun c -> (c.flag = NotFlagged))
+        console.log("NOT FLAGGED MINES", MinesNotFlagged)
+        (lenMines = lenFlags)
+
+let anyMineIsVisible w =
+    match queryCells w with
+    | None -> false
+    | Some cells ->
+        let mines = cells |> Array.filter(fun c -> (c.content = Mine))
+        let vis = mines |> Array.tryFind(fun c -> (c.visibility = Visible))
+        match vis with
+        | Some _ -> true
+        | _ ->false
+
+let proxyOrEmpty c =
+    match c.content with
+    | Proxy (_) -> true
+    | Empty -> true
+    | _ -> false
+    
+let allEmptiesAreVisible w =
+    match queryCells w with
+    | None -> false
+    | Some cells ->
+        let empties = cells |> Array.filter (fun c ->(proxyOrEmpty c))
+        let vis = empties |> Array.filter(fun c -> (c.visibility = Visible))
+        let lenEmpties = empties |> Array.length
+        let lenVis = vis |> Array.length
+        (lenEmpties = lenVis)
+
+
+let getGameState (world : World option) = 
+    match world with
+    | None -> None
+    | Some w ->
+        match anyMineIsVisible w,allMinesAreFlagged w with
+        | true, _ -> Some Lost
+        | _, true -> Some Won
+        | _ -> None

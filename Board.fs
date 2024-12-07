@@ -42,9 +42,9 @@ let addProxyEntity pos n (w : World)  =
                 addNoReplace ()
     | None -> addNoReplace ()
 
+let isNotOutOfBounds (x,y) (a,b) =
+    (x >= 0) && (x < a) && (y >= 0) && (y < b)
 let getNeighbours (x,y) (w : World) =
-    let isNotOutOfBounds (x,y) (a,b) =
-        (x >= 0) && (x < a) && (y >= 0) && (y < b)
     let possibleNeighbours =
         [
             x - 1, y
@@ -67,15 +67,16 @@ let getNeighbours (x,y) (w : World) =
 let getRandomPosition (x,y) : Position =
     rnd.Next(1, (x + 1)), rnd.Next(1, (y + 1))
         
-let posIsOk pos w : bool =  
-    match pos with
-    | 9,9 -> console.log("FOUND POSITION 9,9") 
-    | _ -> ()
-    match isEmpty pos w with
-    | None -> true
-    | _ ->
-        console.log("FOUND INVALID MINE AT", pos)
-        false
+let posIsOk pos w : bool option =  
+    match queryBoard w with
+    | Some b ->
+        let size  = b.board.size.a, b.board.size.b
+        match isEmpty pos w, isNotOutOfBounds pos size with
+        | None, true -> Some true
+        | _ ->
+            console.log("FOUND INVALID MINE AT", pos)
+            Some false
+    | _ -> None
 
 let generatePositionList  d  w =
     let errB () = printfn "Could not find board"
@@ -86,12 +87,13 @@ let generatePositionList  d  w =
         | n when n < d ->
             let pos = getRandomPosition (x,y)
             match posIsOk pos w with
-            | false -> gpl (x,y) l
-            | true ->
+            | Some false -> gpl (x,y) l
+            | Some true ->
                 [pos] |>
                 List.append l |>
                 List.distinct |>
                 gpl (x,y) 
+            | None -> []
         | _ -> l
     match queryBoard w with
     | None ->
