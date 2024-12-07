@@ -22,33 +22,85 @@ let addMineEntity pos (w : World)  =
     
 
 let addProxyEntity pos n (w : World)  =
+    let err () = console.log("Error! Found no cells")
     let cont = Proxy n
     let cell = {position=pos;content=cont; visibility=Hidden; flag=NotFlagged}
-    w |> addCell {|cell=cell|}
-    
+    let addNoReplace () = w |> addCell {|cell=cell|}
+    match isEmpty pos w with
+    | Some _ ->
+        match jsQueryCell w with
+        | Some cellsAR ->
+            match cellsAR |> Array.tryFind (fun c -> (positionIsEqual pos c.cell.position)) with
+            | Some cellToRemove ->
+                console.log("Replacing empty cell")
+                w |> removeCell cellToRemove |> addCell {|cell=cell|}
+            | None ->
+                err()
+                addNoReplace ()
+        | None-> 
+                err()
+                addNoReplace ()
+    | None -> addNoReplace ()
+
+let getNeighbours (x,y) (w : World) =
+    let isNotOutOfBounds (x,y) (a,b) =
+        (x >= 0) && (x < a) && (y >= 0) && (y < b)
+    let possibleNeighbours =
+        [
+            x - 1, y
+            x + 1, y
+            x, y - 1
+            x, y + 1
+            x - 1, y - 1
+            x + 1, y + 1
+            x - 1, y + 1
+            x + 1, y - 1
+        ]
+    match queryBoard w with
+    | Some b ->
+        let size  = b.board.size.a, b.board.size.b
+        possibleNeighbours |>
+        List.filter(fun p -> (isNotOutOfBounds p size)) |>
+        Some
+    | None -> None
 
 let getRandomPosition (x,y) : Position =
     rnd.Next(1, (x + 1)), rnd.Next(1, (y + 1))
         
-let generatePositionList d  w =
+let posIsOk pos w : bool =  
+    match pos with
+    | 9,9 -> console.log("FOUND POSITION 9,9") 
+    | _ -> ()
+    match isEmpty pos w with
+    | None -> true
+    | _ ->
+        console.log("FOUND INVALID MINE AT", pos)
+        false
+
+let generatePositionList  d  w =
     let errB () = printfn "Could not find board"
     let errSize ()  = printfn "Size of board is too small"
-    let rec gpl  (x,y) l =
+    let rec gpl (x,y) l =
         let len = l |> List.length
         match len with
         | n when n < d ->
-            let p = getRandomPosition (x,y) 
-            l |> List.distinct |> List.append [p] |> gpl (x,y)
+            let pos = getRandomPosition (x,y)
+            match posIsOk pos w with
+            | false -> gpl (x,y) l
+            | true ->
+                [pos] |>
+                List.append l |>
+                List.distinct |>
+                gpl (x,y) 
         | _ -> l
-    let b = queryBoard w
-    match b with
+    match queryBoard w with
     | None ->
         errB()
         []
     | Some board ->
         let size = board.board.size
         match (size.a * size.b) with
-        | n when (n - 1) > d ->
+        |   n when (n - 1) > d ->
             gpl (size.a, size.b) []
         | _ ->
             errSize()
@@ -72,27 +124,7 @@ let addBoardEntity  x y w : World  =
     w |> addBoard bar
     w
 
-let getNeighbours (x,y) (w : World) =
-    let isNotOutOfBounds (x,y) (a,b) =
-        (x >= 0) && (x < a) && (y >= 0) && (y < b)
-    let possibleNeighbours =
-        [
-            x - 1, y
-            x + 1, y
-            x, y - 1
-            x, y + 1
-            x - 1, y - 1
-            x + 1, y + 1
-            x - 1, y + 1
-            x + 1, y - 1
-        ]
-    match queryBoard w with
-    | Some b ->
-        let size  = b.board.size.a, b.board.size.b
-        possibleNeighbours |>
-        List.filter(fun p -> (isNotOutOfBounds p size)) |>
-        Some
-    | None -> None
+
 
 let nrOfMines (x,y) (w : World) =
     let n = getNeighbours (x,y) w
@@ -153,9 +185,22 @@ let addEmpties (w : World) =
     | Some b -> addEmptyToBoard b.board.size 0 w
     | _ -> w
 
-let addEntities difficulty x y w : World = 
+let addReserves (init : Position) w =
+    console.log("ADDING RESERVES AT ", init)
+    let rec addCells  (p : Position list) wrld =
+        match p with
+        | [] -> wrld
+        | el::rem ->
+            let cell = {position=el;content=Empty; visibility=Hidden; flag=NotFlagged}
+            w |> addCell {|cell=cell|} |> addCells rem
+    match (getNeighbours init w) with
+    | None -> w
+    | Some nb -> addCells (init::nb) w
+
+let addEntities init difficulty x y w : World = 
     w |>
     addBoardEntity x y |>
+    addReserves init |>
     addMines difficulty |>
     addProxies |>
     addEmpties
@@ -259,4 +304,4 @@ let updateWorld (a : MSAction) (x : int) (y : int) (w : World) : World  =
 
 let createWorld difficulty (init : Position) (a :int,b : int) =
     let w = new World()
-    w |> addEntities difficulty a b
+    w |> addEntities init difficulty a b
